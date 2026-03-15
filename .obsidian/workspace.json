@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "2c93c6ea43d5150f",
+        "id": "79ae5ea16a5edc96",
         "type": "tabs",
         "children": [
           {
-            "id": "54f63fb7401d2c8a",
+            "id": "51f3709c458aa131",
             "type": "leaf",
             "state": {
-              "type": "graph",
+              "type": "empty",
               "state": {},
-              "icon": "lucide-git-fork",
-              "title": "关系图谱"
+              "icon": "lucide-file",
+              "title": "新标签页"
             }
           }
         ]
@@ -90,6 +90,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "未命名 1.base",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +100,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "未命名 1 的反向链接列表"
             }
           },
           {
@@ -108,11 +109,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "未命名 1.base",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "出链"
+              "title": "未命名 1 的出链列表"
             }
           },
           {
@@ -150,20 +152,31 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "未命名 1.base",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "大纲"
+              "title": "未命名 1 的大纲"
+            }
+          },
+          {
+            "id": "df5829cbec30a4e1",
+            "type": "leaf",
+            "state": {
+              "type": "claudian-view",
+              "state": {},
+              "icon": "bot",
+              "title": "Claudian"
             }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -173,12 +186,18 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "bases:新建数据库": false
+      "bases:新建数据库": false,
+      "obsidian42-brat:BRAT": false,
+      "obsidian-excalidraw-plugin:New drawing": false,
+      "claudian:Open Claudian": false
     }
   },
-  "active": "54f63fb7401d2c8a",
+  "active": "df5829cbec30a4e1",
   "lastOpenFiles": [
     "README.md",
-    "未命名.base"
+    "未命名 1.base",
+    "未命名.base",
+    "未命名.canvas",
+    "2026-03-15.md"
   ]
 }
