@@ -1,5 +1,6 @@
 """Claude SDK for Python."""
 
+import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
@@ -14,7 +15,7 @@ from ._errors import (
     ProcessError,
 )
 from ._internal.session_mutations import rename_session, tag_session
-from ._internal.sessions import get_session_messages, list_sessions
+from ._internal.sessions import get_session_info, get_session_messages, list_sessions
 from ._internal.transport import Transport
 from ._version import __version__
 from .client import ClaudeSDKClient
@@ -93,6 +94,8 @@ from .types import (
 )
 
 # MCP Server Support
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -248,7 +251,15 @@ def create_sdk_mcp_server(
         - ClaudeAgentOptions: Configuration for using servers with query()
     """
     from mcp.server import Server
-    from mcp.types import ImageContent, TextContent, Tool
+    from mcp.types import (
+        AudioContent,
+        CallToolResult,
+        EmbeddedResource,
+        ImageContent,
+        ResourceLink,
+        TextContent,
+        Tool,
+    )
 
     # Create MCP server instance
     server = Server(name, version=version)
@@ -317,14 +328,19 @@ def create_sdk_mcp_server(
             result = await tool_def.handler(arguments)
 
             # Convert result to MCP format
-            # The decorator expects us to return the content, not a CallToolResult
-            # It will wrap our return value in CallToolResult
-            content: list[TextContent | ImageContent] = []
+            content: list[
+                TextContent
+                | ImageContent
+                | AudioContent
+                | ResourceLink
+                | EmbeddedResource
+            ] = []
             if "content" in result:
                 for item in result["content"]:
-                    if item.get("type") == "text":
+                    item_type = item.get("type")
+                    if item_type == "text":
                         content.append(TextContent(type="text", text=item["text"]))
-                    if item.get("type") == "image":
+                    elif item_type == "image":
                         content.append(
                             ImageContent(
                                 type="image",
@@ -332,9 +348,42 @@ def create_sdk_mcp_server(
                                 mimeType=item["mimeType"],
                             )
                         )
+                    elif item_type == "resource_link":
+                        parts = []
+                        link_name = item.get("name")
+                        uri = item.get("uri")
+                        desc = item.get("description")
+                        if link_name:
+                            parts.append(link_name)
+                        if uri:
+                            parts.append(str(uri))
+                        if desc:
+                            parts.append(desc)
+                        content.append(
+                            TextContent(
+                                type="text",
+                                text="\n".join(parts) if parts else "Resource link",
+                            )
+                        )
+                    elif item_type == "resource":
+                        resource = item.get("resource") or {}
+                        if "text" in resource:
+                            content.append(
+                                TextContent(type="text", text=resource["text"])
+                            )
+                        else:
+                            logger.warning(
+                                "Binary embedded resource cannot be converted to text, skipping"
+                            )
+                    else:
+                        logger.warning(
+                            "Unsupported content type %r in tool result, skipping",
+                            item_type,
+                        )
 
-            # Return just the content list - the decorator wraps it
-            return content
+            return CallToolResult(
+                content=content, isError=result.get("is_error", False)
+            )
 
     # Return SDK server configuration
     return McpSdkServerConfig(type="sdk", name=name, instance=server)
@@ -418,6 +467,7 @@ __all__ = [
     "SdkPluginConfig",
     # Session listing
     "list_sessions",
+    "get_session_info",
     "get_session_messages",
     "SDKSessionInfo",
     "SessionMessage",

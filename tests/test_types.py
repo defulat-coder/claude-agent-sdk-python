@@ -115,6 +115,9 @@ class TestOptions:
         options_accept = ClaudeAgentOptions(permission_mode="acceptEdits")
         assert options_accept.permission_mode == "acceptEdits"
 
+        options_dont_ask = ClaudeAgentOptions(permission_mode="dontAsk")
+        assert options_dont_ask.permission_mode == "dontAsk"
+
     def test_claude_code_options_with_system_prompt_string(self):
         """Test Options with system prompt as string."""
         options = ClaudeAgentOptions(
@@ -142,6 +145,16 @@ class TestOptions:
             "type": "preset",
             "preset": "claude_code",
             "append": "Be concise.",
+        }
+
+    def test_claude_code_options_with_system_prompt_file(self):
+        """Test Options with system prompt file."""
+        options = ClaudeAgentOptions(
+            system_prompt={"type": "file", "path": "/path/to/prompt.md"},
+        )
+        assert options.system_prompt == {
+            "type": "file",
+            "path": "/path/to/prompt.md",
         }
 
     def test_claude_code_options_with_session_continuation(self):

@@ -15,7 +15,9 @@ else:
     McpServer = Any
 
 # Permission modes
-PermissionMode = Literal["default", "acceptEdits", "plan", "bypassPermissions"]
+PermissionMode = Literal[
+    "default", "acceptEdits", "plan", "bypassPermissions", "dontAsk"
+]
 
 # SDK Beta features - see https://docs.anthropic.com/en/api/beta-headers
 SdkBeta = Literal["context-1m-2025-08-07"]
@@ -30,6 +32,13 @@ class SystemPromptPreset(TypedDict):
     type: Literal["preset"]
     preset: Literal["claude_code"]
     append: NotRequired[str]
+
+
+class SystemPromptFile(TypedDict):
+    """System prompt file configuration."""
+
+    type: Literal["file"]
+    path: str
 
 
 class ToolsPreset(TypedDict):
@@ -797,6 +806,10 @@ class AssistantMessage:
     parent_tool_use_id: str | None = None
     error: AssistantMessageError | None = None
     usage: dict[str, Any] | None = None
+    message_id: str | None = None
+    stop_reason: str | None = None
+    session_id: str | None = None
+    uuid: str | None = None
 
 
 @dataclass
@@ -888,6 +901,9 @@ class ResultMessage:
     usage: dict[str, Any] | None = None
     result: str | None = None
     structured_output: Any = None
+    model_usage: dict[str, Any] | None = None
+    permission_denials: list[Any] | None = None
+    uuid: str | None = None
 
 
 @dataclass
@@ -974,21 +990,28 @@ class SDKSessionInfo:
         summary: Display title for the session — custom title, auto-generated
             summary, or first prompt.
         last_modified: Last modified time in milliseconds since epoch.
-        file_size: Session file size in bytes.
-        custom_title: User-set session title via /rename.
+        file_size: Session file size in bytes. Only populated for local
+            JSONL storage; may be ``None`` for remote storage backends.
+        custom_title: Session title — user-set custom title or AI-generated title.
         first_prompt: First meaningful user prompt in the session.
         git_branch: Git branch at the end of the session.
         cwd: Working directory for the session.
+        tag: User-set session tag.
+        created_at: Creation time in milliseconds since epoch, extracted
+            from the first entry's ISO timestamp field. More reliable
+            than stat().birthtime which is unsupported on some filesystems.
     """
 
     session_id: str
     summary: str
     last_modified: int
-    file_size: int
+    file_size: int | None = None
     custom_title: str | None = None
     first_prompt: str | None = None
     git_branch: str | None = None
     cwd: str | None = None
+    tag: str | None = None
+    created_at: int | None = None
 
 
 @dataclass
@@ -1037,7 +1060,7 @@ class ClaudeAgentOptions:
 
     tools: list[str] | ToolsPreset | None = None
     allowed_tools: list[str] = field(default_factory=list)
-    system_prompt: str | SystemPromptPreset | None = None
+    system_prompt: str | SystemPromptPreset | SystemPromptFile | None = None
     mcp_servers: dict[str, McpServerConfig] | str | Path = field(default_factory=dict)
     permission_mode: PermissionMode | None = None
     continue_conversation: bool = False
@@ -1125,8 +1148,7 @@ class SDKControlInitializeRequest(TypedDict):
 
 class SDKControlSetPermissionModeRequest(TypedDict):
     subtype: Literal["set_permission_mode"]
-    # TODO: Add PermissionMode
-    mode: str
+    mode: PermissionMode
 
 
 class SDKHookCallbackRequest(TypedDict):
